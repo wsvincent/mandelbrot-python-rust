@@ -1,33 +1,31 @@
 # mandelbrot-python-rust
 
-A command line tool rendering images of the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) in pure Python and with core function, `escape_count`, rewritten in Rust with [PyO3](https://pyo3.rs) and [maturin](https://www.maturin.rs).
+A command line tool rendering images of the [Mandelbrot set](https://en.wikipedia.org/wiki/Mandelbrot_set) in pure Python and with core function, `escape_count`, rewritten in Rust with [PyO3](https://pyo3.rs) and [maturin](https://www.maturin.rs). `src/lib.rs` is deliberately tiny — one `#[pyfunction]` and nothing else.
 
 ![Seahorse Valley](img/seahorse-valley.png)
 
-`src/lib.rs` is deliberately tiny — one `#[pyfunction]` and nothing else.
-
 ## The numbers
 
-At the default 800×600 with a 5000 iteration limit, the viewport works out to
-**453 million iterations** of `z = z² + c`, which is the real unit of work here
-— the pixel count is fixed, but how many times each pixel goes round the loop
-is what the iteration limit actually buys you.
+Same viewport, same **453 million iterations** of `z = z² + c`, same everything
+— except which `escape_count` gets called. Run on an Apple M4 Max.
 
 | mode | `escape_count` | time | throughput | speedup |
 | --- | --- | ---: | ---: | ---: |
-| `python` | pure Python | 20.96 s | 22 M iter/s | 1× |
-| `rust` | Rust | 1.14 s | 397 M iter/s | **18×** |
+| `python` | pure Python | 20.73 s | 22 M iter/s | 1× |
+| `rust` | Rust | 1.06 s | 427 M iter/s | **19×** |
 
-Nothing else changes between the two runs. Python still owns the pixel loop,
-the palette, the progress bar and the PNG writer, and still crosses into Rust
-480,000 times — once per pixel. The only difference is which `escape_count`
-gets called, and it's worth 18×.
+**Pure Python**
 
-Raising the iteration limit widens the gap rather than just scaling both sides:
-Python holds flat at 22 M iter/s however long the loop runs, while Rust climbs
-from 329 M iter/s at `--max-iter 1000` to 397 M iter/s at 5000. The per-call
-cost of crossing into Rust is fixed, so the longer each call stays in the loop,
-the less that crossing costs relative to the work it does.
+![Python Mode](img/mode-python.png)
+
+**Rust**
+
+![Rust Mode](img/mode-rust.png)
+
+Python still owns the pixel loop, the palette, the progress bar and the PNG
+writer, and still crosses into Rust 480,000 times — once per pixel. One
+function moved — 20.7 s down to 1.1 s, 22 M iter/s up to 427 M — and it's
+worth **19×**.
 
 ## Setup
 

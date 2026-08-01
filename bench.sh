@@ -19,6 +19,31 @@ if ! python -c 'import mandelbrot._fast' 2>/dev/null; then
     uvx maturin@1 develop --release
 fi
 
+# Refuse to benchmark a debug build. Something in this project's tooling has
+# replaced the release extension with a debug one several times, and a debug
+# build runs about 2.5x slower -- slow enough to look like a real result and
+# quietly put a wrong number in the README. The installed .so is byte-identical
+# to target/debug when that happens, so compare against it directly rather than
+# guessing from a file size.
+installed=$(python -c 'import mandelbrot._fast as m; print(m.__file__)')
+for debug_build in target/debug/lib_fast.dylib target/debug/lib_fast.so; do
+    if [[ -f $debug_build ]] && cmp -s "$installed" "$debug_build"; then
+        cat >&2 <<MSG
+error: the installed Rust extension is a DEBUG build.
+
+  $installed
+  is byte-identical to $debug_build
+
+  It benchmarks roughly 2.5x slower than release, which would understate the
+  speedup. Rebuild before benchmarking:
+
+      just develop
+
+MSG
+        exit 1
+    fi
+done
+
 timings=""
 iters=""
 for mode in python rust; do
