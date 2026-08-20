@@ -1,10 +1,10 @@
 # Build the Rust extension module into the local virtualenv.
 develop:
-    uvx maturin@1 develop --release
+    uv run maturin develop --release
 
 # Build a release wheel.
 build:
-    uvx maturin@1 build --release
+    uv run maturin build --release
 
 # Pure-Python escape_count -- the slow one.
 run-python *ARGS:
