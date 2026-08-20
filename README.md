@@ -26,16 +26,11 @@ Same viewport, same **453 million iterations** of `z = z² + c`, same everything
 
 Requires Python 3.10+, a Rust toolchain via [rustup](https://rustup.rs),
 [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just) for
-the shortcuts below.
+the shortcut below.
 
 ```sh
-uv venv
-uv pip install pip          # maturin develop shells out to pip
-just develop                # or: uvx maturin@1 develop --release
+just develop                # or: uv run maturin develop --release
 ```
 
 `develop` compiles `src/lib.rs` and installs it into `.venv` as
 `mandelbrot._fast`.
-
-
-
